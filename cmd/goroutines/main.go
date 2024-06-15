@@ -33,6 +33,7 @@ func main() {
 	wg.Wait() // Wait for all goroutines to finish
 	fmt.Println("Time taken for all goroutines to finish: ", time.Since(t0))
 	fmt.Println("Result: ", result)
+	channelTest()
 }
 
 func dbAccess(i int) {
@@ -57,4 +58,51 @@ func log() {
 	m.RLock()
 	fmt.Printf("Data: %v\n", result)
 	m.RUnlock()
+}
+
+//Channels are used to communicate between goroutines.
+// Channels are used to send and receive data between goroutines.
+// Channels are used to synchronize goroutines.
+//Channels hold data
+//Channels are thread-safe
+// we can listen for data on a channel using the <- operator.
+
+func channelTest() {
+	var c = make(chan int)
+	//c <- 1      // Send data to the channel
+	// when we send data to a channel, the program will wait until the data is received by another goroutine.
+	// If there is no goroutine to receive the data, the program will deadlock.
+	//var i = <-c // Receive data from the channel and store it in i.
+	//Channel is empty after this operation
+	//fmt.Println(i)
+	go process(c) // call process function as a goroutine
+	//	fmt.Println(<-c) // value set by go routine. <-c waits for value to be set in goroutine
+	for i := range c {
+		fmt.Println(i)
+	}
+
+	var bufferedChannel = make(chan int, 5) // buffered channel with a capacity of 3
+	go processBuffered(bufferedChannel)
+	for i := range bufferedChannel {
+		fmt.Println(i)
+		time.Sleep(1 * time.Second)
+	}
+}
+
+func process(c chan int) {
+	defer close(c)
+	for i := 0; i < 5; i++ {
+		time.Sleep(1 * time.Second)
+		c <- i
+	}
+	//close(c)
+}
+
+func processBuffered(c chan int) {
+	defer close(c)
+	for i := 0; i < 5; i++ {
+		c <- i
+	}
+	fmt.Println("Exiting ProcessBuffered")
+	//close(c)
 }
